@@ -1,36 +1,42 @@
-/*!
- * Copyright 2026, Staffbase SE and contributors.
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *     http://www.apache.org/licenses/LICENSE-2.0
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+process.env.TZ = "UTC";
 
 import { screen } from "@testing-library/dom";
 
 import "../dev/bootstrap";
 
-describe("Widget test", () => {
-  beforeAll(() => {
+function mockFetch(status: number, body: unknown): void {
+  global.fetch = jest.fn().mockResolvedValue({
+    ok: status >= 200 && status < 300,
+    status,
+    json: () => Promise.resolve(body),
+  }) as unknown as typeof fetch;
+}
+
+describe("Widget integration", () => {
+  beforeAll(async () => {
     document.body.innerHTML = `
         <div id="preview"></div>
         <div id="config"></div>
         `;
+    await import("./index");
   });
 
-  it("should render the widget", async () => {
+  it("should show the dates of the hosting page", async () => {
+    mockFetch(200, { publishedAt: "2026-11-17T10:00:00Z", updatedAt: "2026-11-17T10:00:00Z" });
+    const page = document.createElement("div");
+    page.setAttribute("data-installation-id", "6afc78e4000e7511c05ac171");
     const widget = document.createElement("date-widget");
-    widget.setAttribute("message", "World");
-    await import("./index");
-    document.body.appendChild(widget);
+    page.appendChild(widget);
+    document.body.appendChild(page);
+    // contentLanguage du bootstrap de test = "en_US"
+    expect(await screen.findByText("Publié le Nov 17, 2026")).toBeInTheDocument();
+  });
 
-    expect(await screen.findByText(/Hello World/)).toBeInTheDocument();
-    expect(screen.getByText(/en_US/)).toBeInTheDocument();
-    expect(screen.getByLabelText('Date Widget')).toBeInTheDocument();
+  it("should render nothing outside a page (no data-installation-id)", async () => {
+    const callsBefore = (global.fetch as jest.Mock).mock.calls.length;
+    const widget = document.createElement("date-widget");
+    document.body.appendChild(widget);
+    expect(widget.textContent).toBe("");
+    expect((global.fetch as jest.Mock).mock.calls.length).toBe(callsBefore);
   });
 });

@@ -23,15 +23,13 @@ import pkg from '../package.json'
 /**
  * Define which attributes are handled by the widget. This should be also reflected in configuration schema
  */
-const widgetAttributes: string[] = [
-  'message',
-];
+const widgetAttributes: string[] = [];
 
 /**
  * This factory creates the class which is registered with the tagname in the `custom element registry`
  * Gets the parental class and a set of helper utilities provided by the hosting application.
  */
-const factory: BlockFactory = (BaseBlockClass, _widgetApi) => {
+const factory: BlockFactory = (BaseBlockClass, widgetApi) => {
   /**
    *  <date-widget message="world!"></date-widget>
    */
@@ -43,9 +41,9 @@ const factory: BlockFactory = (BaseBlockClass, _widgetApi) => {
     }
 
     private get props(): DateWidgetProps {
-      const attrs = this.parseAttributes<DateWidgetProps>();
       return {
-        ...attrs,
+        pageId: this.closest('[data-installation-id]')?.getAttribute('data-installation-id') ?? undefined,
+        webUrl: widgetApi.getBranchInformation().webUrl,
         contentLanguage: this.contentLanguage,
       };
     }
