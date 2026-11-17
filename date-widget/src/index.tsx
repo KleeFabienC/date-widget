@@ -16,6 +16,7 @@ import ReactDOM from "react-dom/client";
 
 import { BlockFactory, BlockDefinition, ExternalBlockDefinition, BaseBlock } from "widget-sdk";
 import { DateWidgetProps, DateWidget } from "./date-widget";
+import { resolveInstallationId } from "./installation-id";
 import { configurationSchema, uiSchema } from "./configuration-schema";
 import icon from "../resources/date-widget.svg";
 import pkg from '../package.json'
@@ -42,7 +43,7 @@ const factory: BlockFactory = (BaseBlockClass, widgetApi) => {
 
     private get props(): DateWidgetProps {
       return {
-        pageId: this.closest('[data-installation-id]')?.getAttribute('data-installation-id') ?? undefined,
+        pageId: resolveInstallationId(this),
         webUrl: widgetApi.getBranchInformation().webUrl,
         contentLanguage: this.contentLanguage,
       };
