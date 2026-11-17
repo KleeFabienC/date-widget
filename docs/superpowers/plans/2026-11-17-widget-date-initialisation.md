@@ -93,15 +93,16 @@ test -f dist/staffbase.date-widget.js && echo BUNDLE_OK
 Expected: exit 0 puis `BUNDLE_OK`.
 Si le build échoue avec des erreurs d'interop (chemins `C:\`, EACCES, SIGSEGV) → appliquer le fallback nvm du Step 1 puis relancer les Steps 4-5. D'autres erreurs → les rapporter, ne pas patcher aveuglément.
 
-- [ ] **Step 6: Copier le bundle à la racine du repo**
+- [ ] **Step 6: Copier le bundle (et son fichier de licences) à la racine du repo**
 
 ```bash
 cd /mnt/c/Projets/StaffBase/widgetDate
 cp date-widget/dist/staffbase.date-widget.js .
-ls -la staffbase.date-widget.js
+cp date-widget/dist/staffbase.date-widget.js.LICENSE.txt .
+ls -la staffbase.date-widget.js staffbase.date-widget.js.LICENSE.txt
 head -c 200 staffbase.date-widget.js
 ```
-Expected: fichier présent, de l'ordre de 100-300 Ko, début lisible (JS), pas une page d'erreur.
+Expected: fichier présent, de l'ordre de 100-300 Ko, début lisible (JS), pas une page d'erreur. Le `.LICENSE.txt` (avis de licence des dépendances — React, etc.) est référencé par le bundle : il doit voyager avec lui, surtout dans un repo public.
 
 ---
 
@@ -162,7 +163,10 @@ Expected: `Initialized empty Git repository ... (branch main)`.
 ```
 node_modules/
 dist/
-.env
+.env*
+!.env.example
+coverage/
+*.tsbuildinfo
 *.log
 .DS_Store
 ```
