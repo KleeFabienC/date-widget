@@ -8,8 +8,8 @@ Le widget `<date-widget>` affiche, dans l'app Staffbase, la **date de publicatio
 
 ## Mécanisme de données (vérifié)
 
-- L'identifiant de la page courante est présent dans le DOM sous l'attribut **`data-menu-id`** sur le tag HTML de la page (vérifié par l'utilisatrice sur son instance). Format : ObjectId 24 caractères hexadécimaux.
-- Le widget est un web component : la classe du bloc étend `HTMLElement`, donc **`this` dans le bloc est l'élément `<date-widget>` lui-même**. Lecture de l'ID : `this.closest('[data-menu-id]')?.getAttribute('data-menu-id')`.
+- L'identifiant de la page courante est présent dans le DOM sous l'attribut **`data-installation-id`** sur la balise **`<html>`** de l'app (vérifié sur l'instance : `document.documentElement`). Format : ObjectId 24 caractères hexadécimaux.
+- Le widget est un web component : la classe du bloc étend `HTMLElement`, donc **`this` dans le bloc est l'élément `<date-widget>` lui-même**. Dans la nouvelle UX, le widget est rendu **à l'intérieur d'une shadow root** et `closest()` seul ne traverse pas la frontière shadow : l'ID est résolu par `resolveInstallationId(this)` (module `src/installation-id.ts`), qui remonte les ancêtres en traversant chaque shadow root vers son host jusqu'au DOM light.
 - Domaine de l'instance : `widgetApi.getBranchInformation().webUrl` (synchron, reçu par le factory — le factory du SDK reçoit `widgetApi` en 2ᵉ argument).
 - Endpoint : `GET https://{webUrl}/api/pages/{pageId}` (API Pages, beta) → JSON avec `publishedAt`, `updatedAt`, `createdAt` (ISO 8601).
 - Auth : cookies de session, même origine, `fetch(..., { credentials: "include" })` — pattern validé sur l'API v2 par le widget news feed de la collègue.
@@ -19,7 +19,7 @@ Le widget `<date-widget>` affiche, dans l'app Staffbase, la **date de publicatio
 - **« Publié le 17 nov. 2026 »** — format court via `contentLanguage` (`toLocaleDateString` en locale dérivée de `contentLanguage`, ex. `fr_FR` → `fr-FR`, `day: 'numeric', month: 'short', year: 'numeric'`).
 - **« · Modifié le 3 déc. 2026 »** — uniquement si `updatedAt` > `publishedAt`.
 - `publishedAt` absent (page jamais publiée) → afficher « Modifié le … » seul si `updatedAt` existe.
-- Absence de `data-menu-id` (widget hors d'une Page : News, aperçu dans l'éditeur) → le widget **ne rend rien de visible** + `console.warn`.
+- Absence de `data-installation-id` (widget hors d'une Page : News, aperçu dans l'éditeur) → le widget **ne rend rien de visible** + `console.warn`.
 - Erreur d'API (401/403/5xx/réseau) → idem : rien de visible + `console.warn`.
 
 ## Configuration du widget
@@ -55,4 +55,4 @@ Le widget `<date-widget>` affiche, dans l'app Staffbase, la **date de publicatio
 - Dates des News/posts — Pages uniquement.
 - Cache, configuration du format, i18n au-delà de `contentLanguage`.
 - CI, publication npm.
-- Compatibilité avec un futur changement d'attribut plateforme (on suit `data-menu-id` tel que constaté).
+- Compatibilité avec un futur changement d'attribut plateforme (on suit `data-installation-id` tel que constaté).
