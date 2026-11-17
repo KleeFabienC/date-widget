@@ -6,7 +6,7 @@
 
 **Architecture:** Le générateur officiel `@staffbase/create-widget` produit un projet TypeScript/React (webpack 5, babel, jest) dans le sous-dossier `date-widget/`. Le bundle compilé `dist/staffbase.date-widget.js` est copié à la racine du repo (l'artefact à monter sur StaffBase, pattern du repo de référence). Le repo est créé et poussé via la CLI `gh`.
 
-**Tech Stack:** Node 22 (Windows v22.14.0, accessible depuis WSL), npm 11, TypeScript, React 18, webpack 5, gh CLI, Ubuntu 24.04 (WSL).
+**Tech Stack:** Node 22 (Linux via nvm v22.23.5 — node Windows non résolu sous le nom `node`), npm, TypeScript, React 19 (fourni par le générateur v2.7.8 ; la ligne initiale « React 18 » datait du repo de référence), webpack 5, gh CLI, Ubuntu 24.04 (WSL).
 
 **Spec:** `docs/superpowers/specs/2026-11-17-widget-date-initialisation-design.md`
 
