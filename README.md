@@ -51,3 +51,16 @@ https://KleeFabienC.github.io/date-widget/staffbase.date-widget.js
 Installez cette URL dans Staffbase Studio (doc : https://developers.staffbase.com/frameworks/customwidget-development). L'URL ne change pas après un rebuild+push : si Studio ou le navigateur sert le bundle en cache, re-enregistrez le widget ou faites un rechargement dur.
 
 `npm start` (serveur local de prévisualisation, port 9000) sert uniquement au développement local, pas à l'installation dans Studio.
+
+## Zéro habillage — CSS globale de l'app (production)
+
+Le bundle neutralise lui-même la décoration « carte » par override inline (`removeCardDecoration` / `removeBlockBranding` dans `src/index.tsx`). Mais le wrapper du bloc en light DOM peut être **re-rendu par la plateforme après l'exécution du script** (ou l'ancien bundle rester en cache) : la couche autoritative en production est donc cette CSS, insérée au niveau global de l'app — **scopée au bloc `date-widget` uniquement**, via le JSON de l'attribut `custom-block` du `<sb-custom-block>` :
+
+```css
+div[data-c13y-region="custom-block"]:has(sb-custom-block[custom-block*="date-widget"]) {
+  box-shadow: none;
+  border-radius: 0;
+}
+```
+
+La specificité (`(0,2,2)`) domine `.designer-branding-shadow` / `.designer-branding-border-radius` (`(0,1,0)`) : pas besoin de `!important`. Variante plus stricte (si un autre widget contenait « date-widget » dans son nom ou son URL) : remplacer `*="date-widget"` par `*='"customElementName":"date-widget"'`.
