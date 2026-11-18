@@ -6,3 +6,10 @@ coverage/
 *.tsbuildinfo
 *.log
 .DS_Store
+~$*
+
+# Retex flash — usage interne uniquement, hors du repo GitHub
+retex/
+Retex_Flash_Widget_Date_IA.pptx
+docs/superpowers/specs/2026-11-18-retex-flash-presentation-design.md
+docs/superpowers/plans/2026-11-18-retex-flash-presentation.md
