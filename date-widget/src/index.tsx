@@ -52,6 +52,24 @@ const factory: BlockFactory = (BaseBlockClass, widgetApi) => {
     public renderBlock(container: HTMLElement): void {
       this._root ??= ReactDOM.createRoot(container);
       this._root.render(<DateWidget {...this.props} />);
+      this.removeCardDecoration();
+    }
+
+    /**
+     * La plateforme enveloppe le contenu de tout widget custom dans une carte
+     * (div.widget-card : ombré, arrondis, fond, padding). Ce widget n'affiche
+     * que des dates : on retire l'habillage de la carte qui nous entoure.
+     * Override inline scopé à notre propre élément — si la plateforme change
+     * sa structure, la carte réapparaît simplement (pas d'erreur).
+     */
+    private removeCardDecoration(): void {
+      const card =
+        this.querySelector(".widget-card") ?? this.shadowRoot?.querySelector(".widget-card") ?? null;
+      if (!card) {
+        return;
+      }
+      card.style.cssText =
+        "box-shadow: none; border-width: 0; background-color: transparent; border-radius: 0px; padding: 0px; margin: 0px;";
     }
 
     /**

@@ -47,6 +47,25 @@ describe("Widget integration", () => {
     document.documentElement.removeAttribute("data-installation-id");
   });
 
+  it("should strip the platform widget-card decoration around the content", async () => {
+    mockFetch(200, { publishedAt: "2026-11-17T10:00:00Z", updatedAt: "2026-11-17T10:00:00Z" });
+    // Topologie de la nouvelle UX : id sur <html>, contenu enveloppé dans .widget-card
+    document.documentElement.setAttribute("data-installation-id", "6afc78e4000e7511c05ac171");
+    const widget = document.createElement("date-widget");
+    const card = document.createElement("div");
+    card.className = "widget-card";
+    widget.appendChild(card);
+    document.body.appendChild(widget);
+    await waitFor(() => expect(widget.textContent).toContain("Publié le Nov 17, 2026"));
+    expect(card.style.boxShadow).toBe("none");
+    expect(card.style.borderWidth).toBe("0px");
+    expect(card.style.backgroundColor).toBe("transparent");
+    expect(card.style.borderRadius).toBe("0px");
+    expect(card.style.padding).toBe("0px");
+    expect(card.style.margin).toBe("0px");
+    document.documentElement.removeAttribute("data-installation-id");
+  });
+
   it("should render nothing outside a page (no data-installation-id)", async () => {
     const callsBefore = (global.fetch as jest.Mock).mock.calls.length;
     const widget = document.createElement("date-widget");
