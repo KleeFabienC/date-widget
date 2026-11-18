@@ -35,7 +35,16 @@ SLIDE_TITLES = [
 ]
 
 # Phrases clés par slide (comparaison minuscules sur le texte concaténé du slide).
-KEY_PHRASES: dict[int, list[str]] = {}
+KEY_PHRASES: dict[int, list[str]] = {
+    2: ["date de publication", "exemple d'une collègue", "@staffbase/create-widget",
+        "typescript", "react", "webpack", "opencode", "langage naturel"],
+    3: ["brainstorming", "spec", "plan", "tdd", "revue indépendante",
+        "2 jours", "20 commits", "16 tests", "phase 1", "phase 2"],
+    4: ["langage naturel", "reconnaissance", "staffbase.<nom>.js", "wsl", "gh",
+        "revue finale", "licence", "push"],
+    5: ["avant le code", "red", "green", "data-installation-id", "api/pages",
+        "publié le", "modifié le", "16 tests"],
+}
 
 # Chaînes qui doivent apparaître AVEC leur casse exacte (URLs).
 EXACT: dict[int, list[str]] = {}
