@@ -18,31 +18,51 @@ function mockFetch(status: number, body: unknown): void {
 afterEach(() => jest.restoreAllMocks());
 
 describe("DateWidget", () => {
-  it("should render the publish date and no modified date when dates are equal", async () => {
-    mockFetch(200, { publishedAt: "2026-11-17T10:00:00Z", updatedAt: "2026-11-17T10:00:00Z" });
+  it("should show the previous publication as « Publié le » and the current one as « Mis à jour le » when the days differ", async () => {
+    mockFetch(200, {
+      data: [
+        { version: 99999, previousVersion: 8, createdAt: "2026-11-18T09:27:40Z", isDraft: true },
+        { version: 8, previousVersion: 7, createdAt: "2026-11-18T09:21:17Z" },
+        { version: 7, previousVersion: 6, createdAt: "2026-11-17T09:14:21Z" },
+      ],
+      cursor: "NA==",
+    });
     render(<DateWidget {...PROPS} />);
-    expect(await screen.findByText("Publié le 17 nov. 2026")).toBeInTheDocument();
-    expect(screen.queryByText(/Modifié le/)).not.toBeInTheDocument();
+    expect(await screen.findByText("Publié le 17 nov. 2026 · Mis à jour le 18 nov. 2026")).toBeInTheDocument();
   });
 
-  it("should not show the modified date when it falls on the same displayed day (publish updates the page)", async () => {
-    // Cas réel observé dans l'app : updatedAt 50 ms après publishedAt, même jour
-    mockFetch(200, { publishedAt: "2026-11-18T06:53:34.699Z", updatedAt: "2026-11-18T06:53:34.749Z" });
+  it("should show a single date when both publications fall on the same displayed day", async () => {
+    mockFetch(200, {
+      data: [
+        { version: 8, previousVersion: 7, createdAt: "2026-11-18T09:21:17Z" },
+        { version: 7, previousVersion: 6, createdAt: "2026-11-18T09:14:21Z" },
+      ],
+      cursor: "NA==",
+    });
     render(<DateWidget {...PROPS} />);
     expect(await screen.findByText("Publié le 18 nov. 2026")).toBeInTheDocument();
-    expect(screen.queryByText(/Modifié le/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Mis à jour le/)).not.toBeInTheDocument();
   });
 
-  it("should append the modified date only when it is strictly later", async () => {
-    mockFetch(200, { publishedAt: "2026-11-17T10:00:00Z", updatedAt: "2026-12-03T08:30:00Z" });
+  it("should show only « Publié le » when there is a single published version", async () => {
+    mockFetch(200, {
+      data: [{ version: 1, previousVersion: null, createdAt: "2026-11-17T08:00:00Z" }],
+      cursor: "NA==",
+    });
     render(<DateWidget {...PROPS} />);
-    expect(await screen.findByText("Publié le 17 nov. 2026 · Modifié le 3 déc. 2026")).toBeInTheDocument();
+    expect(await screen.findByText("Publié le 17 nov. 2026")).toBeInTheDocument();
+    expect(screen.queryByText(/Mis à jour le/)).not.toBeInTheDocument();
   });
 
-  it("should render only the modified date when the page is unpublished", async () => {
-    mockFetch(200, { updatedAt: "2026-12-03T08:30:00Z" });
+  it("should render nothing when the page is unpublished (draft only)", async () => {
+    mockFetch(200, {
+      data: [{ version: 99999, previousVersion: null, createdAt: "2026-11-18T09:27:40Z", isDraft: true }],
+      cursor: "NA==",
+    });
     render(<DateWidget {...PROPS} />);
-    expect(await screen.findByText("Modifié le 3 déc. 2026")).toBeInTheDocument();
+    await waitFor(() => expect(global.fetch).toHaveBeenCalled());
+    await new Promise((resolve) => setTimeout(resolve, 0)); // laisser la promesse résoudre + re-render
+    expect(document.body.textContent).toBe("");
     expect(screen.queryByText(/Publié le/)).not.toBeInTheDocument();
   });
 
