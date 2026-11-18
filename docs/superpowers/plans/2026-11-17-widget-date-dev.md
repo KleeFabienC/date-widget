@@ -4,7 +4,7 @@
 
 **Goal:** le widget `<date-widget>` affiche la date de publication de la Page Staffbase qui l'héberge, et sa date de modification si postérieure, via l'API Pages.
 
-**Architecture:** la classe du bloc étend `HTMLElement` — `this` est l'élément `<date-widget>` — elle lit l'ID de la page par `this.closest('[data-menu-id]')` (l'attribut est posé sur le tag HTML de la page) et le domaine de l'instance via `widgetApi.getBranchInformation().webUrl` (2ᵉ argument du factory). Un module `page-dates.ts` isole l'appel `GET {webUrl}/api/pages/{pageId}` (auth par cookies de session, `credentials: "include"`). Le composant React formate et affiche.
+**Architecture:** la classe du bloc étend `HTMLElement` — `this` est l'élément `<date-widget>` — elle lit l'ID de la page par `this.closest('[data-installation-id]')` (l'attribut est posé sur le tag HTML de la page) et le domaine de l'instance via `widgetApi.getBranchInformation().webUrl` (2ᵉ argument du factory). Un module `page-dates.ts` isole l'appel `GET {webUrl}/api/pages/{pageId}` (auth par cookies de session, `credentials: "include"`). Le composant React formate et affiche.
 
 **Tech Stack:** Node 22 (Linux via nvm v22.23.5), TypeScript, React 19, webpack 5, jest/jsdom, @staffbase/widget-sdk 3.19.9, projet généré par @staffbase/create-widget 2.7.8.
 
@@ -25,9 +25,9 @@
 ## Review Focus
 
 1. **Auth session sur l'API Pages beta** — la doc de l'API ne documente que le token admin ; si l'instance répond 401/403 aux cookies de session, le widget n'affichera jamais les dates. Attente raisonnable : les dates s'affichent sur une vraie page. → Gate **Task 1** (test console sur l'instance) ; stop et re-cadrage si 401/403.
-2. **DOM réel de l'app (nouvelle UX, Shadow DOM)** — `closest('[data-menu-id]')` doit trouver le tag de la page dans le DOM réel, pas seulement en jsdom ; `webUrl` de production provient de la plateforme. Attente raisonnable : les dates s'affichent dans l'app installée, et le widget reste silencieux ailleurs. → **Task 6** (vérification réelle dans Studio).
+2. **DOM réel de l'app (nouvelle UX, Shadow DOM)** — `closest('[data-installation-id]')` doit trouver le tag de la page dans le DOM réel, pas seulement en jsdom ; `webUrl` de production provient de la plateforme. Attente raisonnable : les dates s'affichent dans l'app installée, et le widget reste silencieux ailleurs. → **Task 6** (vérification réelle dans Studio).
 3. **Forme du `webUrl`** — si la valeur réelle a une barre finale, l'URL construite doit rester valide. Attente raisonnable : URL d'API correcte quelle que soit la forme. → normalisation + test dans **Task 2** (fixe RF #3).
-4. **`data-menu-id` absent ou périmé** — widget dans une News, aperçu éditeur, ou ID inexistant (404 API). Attente raisonnable : widget invisible, jamais de texte d'erreur ni « undefined » dans le contenu de la page. → tests 404/**reject** dans **Task 2**, test « hors page » dans **Task 4** (fixent RF #4).
+4. **`data-installation-id` absent ou périmé** — widget dans une News, aperçu éditeur, ou ID inexistant (404 API). Attente raisonnable : widget invisible, jamais de texte d'erreur ni « undefined » dans le contenu de la page. → tests 404/**reject** dans **Task 2**, test « hors page » dans **Task 4** (fixent RF #4).
 5. **Dates absentes dans la réponse** — page en brouillon : `publishedAt` manquant. Attente raisonnable : jamais de « Publié le NaN » ; affichage du « Modifié le » seul. → test dans **Task 3** (fixe RF #5).
 
 ---
@@ -42,7 +42,7 @@
 - [ ] **Step 1: demander à l'utilisatrice d'exécuter dans la console du navigateur, sur une vraie Page de son instance**
 
 ```js
-const id = document.querySelector('[data-menu-id]')?.getAttribute('data-menu-id');
+const id = document.querySelector('[data-installation-id]')?.getAttribute('data-installation-id');
 const r = await fetch('/api/pages/' + id, { credentials: 'include' });
 console.log(r.status, (await r.text()).slice(0, 400));
 ```
@@ -53,7 +53,7 @@ Attendre la réponse de l'utilisatrice. (Fixe Review Focus #1.)
 
 - `200` + JSON contenant `publishedAt` (ex. `{"id":"6afc…","publishedAt":"2026-…",…}`) → **OK**, on passe à la Task 2.
 - `401`/`403` → auth session refusée : **STOP**, rapporter à l'utilisatrice, re-cadrer (pas de Tasks 2-6).
-- `404` → l'ID trouvé n'est pas un `pageId` de l'API Pages : **STOP**, demander à l'utilisatrice de vérifier l'élément porteur de `data-menu-id`.
+- `404` → l'ID trouvé n'est pas un `pageId` de l'API Pages : **STOP**, demander à l'utilisatrice de vérifier l'élément porteur de `data-installation-id`.
 
 Pas de commit (aucun code). Clôture du task : aucune commande à exécuter côté repo — noter le résultat (statut HTTP observé) dans le ledger avant de passer à la Task 2.
 
@@ -285,7 +285,7 @@ Expected: les deux suites ci-dessus au vert. La suite complète reste rouge sur 
 
 **Interfaces:**
 - Consumes: `DateWidget` / `DateWidgetProps` (Task 3) ; le factory reçoit `widgetApi: WidgetApi` en 2ᵉ argument (SDK) ; le mock de dev renvoie `webUrl: "https://staffbase.showcase.com"` et le bootstrap fixe `contentLanguage = "en_US"`.
-- Produces: le bloc `date-widget` enregistré avec **zéro attribut de widget** ; props calculées : `pageId` = `this.closest('[data-menu-id]')?.getAttribute('data-menu-id')`, `webUrl` = `widgetApi.getBranchInformation().webUrl`, `contentLanguage` = `this.contentLanguage`.
+- Produces: le bloc `date-widget` enregistré avec **zéro attribut de widget** ; props calculées : `pageId` = `this.closest('[data-installation-id]')?.getAttribute('data-installation-id')`, `webUrl` = `widgetApi.getBranchInformation().webUrl`, `contentLanguage` = `this.contentLanguage`.
 
 - [ ] **Step 1: réécrire le test d'intégration** — remplacer le contenu de `date-widget/src/index.test.tsx`
 
@@ -316,7 +316,7 @@ describe("Widget integration", () => {
   it("should show the dates of the hosting page", async () => {
     mockFetch(200, { publishedAt: "2026-11-17T10:00:00Z", updatedAt: "2026-11-17T10:00:00Z" });
     const page = document.createElement("div");
-    page.setAttribute("data-menu-id", "6afc78e4000e7511c05ac171");
+    page.setAttribute("data-installation-id", "6afc78e4000e7511c05ac171");
     const widget = document.createElement("date-widget");
     page.appendChild(widget);
     document.body.appendChild(page);
@@ -324,7 +324,7 @@ describe("Widget integration", () => {
     expect(await screen.findByText("Publié le Nov 17, 2026")).toBeInTheDocument();
   });
 
-  it("should render nothing outside a page (no data-menu-id)", async () => {
+  it("should render nothing outside a page (no data-installation-id)", async () => {
     const callsBefore = (global.fetch as jest.Mock).mock.calls.length;
     const widget = document.createElement("date-widget");
     document.body.appendChild(widget);
@@ -352,7 +352,7 @@ Expected: FAIL — le bloc actuel ne reçoit ni `pageId` ni `webUrl` (le 1ᵉʳ 
 ```tsx
 private get props(): DateWidgetProps {
   return {
-    pageId: this.closest('[data-menu-id]')?.getAttribute('data-menu-id') ?? undefined,
+    pageId: this.closest('[data-installation-id]')?.getAttribute('data-installation-id') ?? undefined,
     webUrl: widgetApi.getBranchInformation().webUrl,
     contentLanguage: this.contentLanguage,
   };
@@ -385,7 +385,7 @@ Expected: 2 tests PASS.
 ```bash
 npm test
 git add src/index.tsx src/configuration-schema.ts src/index.test.tsx
-git commit -m "feat: wiring du bloc — pageId via closest(data-menu-id), webUrl via widgetApi"
+git commit -m "feat: wiring du bloc — pageId via closest(data-installation-id), webUrl via widgetApi"
 ```
 Expected: `npm test` → **toutes les suites au vert** (le rouge transitoire de la Task 3 est rétabli ici).
 
@@ -423,7 +423,7 @@ Expected: les deux sha256 identiques.
 
 - [ ] **Step 3: écrire `README.md` à la racine du repo**
 
-Contenu (court, en français) : ce que fait le widget (dates de la page courante via l'API Pages, attribut `data-menu-id`) ; layout du repo (`date-widget/` = source, `staffbase.date-widget.js` + `.LICENSE.txt` = artefacts à monter sur StaffBase) ; commandes : `cd date-widget && npm install && npm test && npm run build` puis copie du bundle + du `.LICENSE.txt` à la racine ; installation en dev : `npm start` → installer `http://localhost:9000/staffbase.date-widget.js` dans Staffbase Studio.
+Contenu (court, en français) : ce que fait le widget (dates de la page courante via l'API Pages, attribut `data-installation-id`) ; layout du repo (`date-widget/` = source, `staffbase.date-widget.js` + `.LICENSE.txt` = artefacts à monter sur StaffBase) ; commandes : `cd date-widget && npm install && npm test && npm run build` puis copie du bundle + du `.LICENSE.txt` à la racine ; installation en dev : `npm start` → installer `http://localhost:9000/staffbase.date-widget.js` dans Staffbase Studio.
 
 - [ ] **Step 4: suite de tests finale**
 
@@ -478,7 +478,7 @@ Expected: serveur sur `http://localhost:9000/staffbase.date-widget.js` (laisser 
 
 - [ ] **Step 3: si ajustement nécessaire**
 
-Si un des points échoue (ex. `data-menu-id` inaccessible depuis le widget dans la nouvelle UX, `webUrl` inattendu, 401) : corriger (TDD — d'abord le test qui échoue), `npm test` au vert, commit, repousser, re-builder si le bundle change (re-copie Step 2 de la Task 5) et refaire la vérification. Le résultat final (OK ou points restants) est noté dans le ledger.
+Si un des points échoue (ex. `data-installation-id` inaccessible depuis le widget dans la nouvelle UX, `webUrl` inattendu, 401) : corriger (TDD — d'abord le test qui échoue), `npm test` au vert, commit, repousser, re-builder si le bundle change (re-copie Step 2 de la Task 5) et refaire la vérification. Le résultat final (OK ou points restants) est noté dans le ledger.
 
 - [ ] **Step 4: arrêter le serveur de dev** et noter la conclusion de la vérification dans le ledger.
 
