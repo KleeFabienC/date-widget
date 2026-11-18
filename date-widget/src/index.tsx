@@ -53,6 +53,7 @@ const factory: BlockFactory = (BaseBlockClass, widgetApi) => {
       this._root ??= ReactDOM.createRoot(container);
       this._root.render(<DateWidget {...this.props} />);
       this.removeCardDecoration();
+      this.removeBlockBranding();
     }
 
     /**
@@ -70,6 +71,39 @@ const factory: BlockFactory = (BaseBlockClass, widgetApi) => {
       }
       card.style.cssText =
         "box-shadow: none; border-width: 0; background-color: transparent; border-radius: 0px; padding: 0px; margin: 0px;";
+    }
+
+    /**
+     * L'ombre « carte » peut aussi porter sur le wrapper du bloc en light DOM
+     * (le div « custom-block » au-dessus de <sb-custom-block>), via les classes
+     * designer-branding-shadow / designer-branding-border-radius. On remonte
+     * depuis notre élément en traversant la shadow root de la plateforme,
+     * puis on neutralise le branding par override inline sur les ancêtres
+     * concernés. Scopé aux classes : si la plateforme change sa structure,
+     * le style réapparaît simplement (pas d'erreur).
+     */
+    private removeBlockBranding(): void {
+      let node: Element | null = this;
+      // Traverser la (ou les) shadow root(s) : le widget est rendu dans la
+      // shadow root de la plateforme, le wrapper du bloc est en light DOM.
+      while (node) {
+        const root = node.getRootNode();
+        if (root instanceof ShadowRoot) {
+          node = root.host;
+        } else {
+          break;
+        }
+      }
+      // Remonter les ancêtres light DOM (borné : le wrapper est à quelques niveaux)
+      for (let depth = 0; node && depth < 5; depth++) {
+        if (node.classList.contains("designer-branding-shadow")) {
+          node.style.boxShadow = "none";
+        }
+        if (node.classList.contains("designer-branding-border-radius")) {
+          node.style.borderRadius = "0px";
+        }
+        node = node.parentElement;
+      }
     }
 
     /**
