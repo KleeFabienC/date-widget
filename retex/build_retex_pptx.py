@@ -159,9 +159,9 @@ def add_title_slide(prs):
     tf.word_wrap = True
     lines = [
         (SLIDE_TITLES[0], 32.0, WHITE, True),
-        ("", 16.0, WHITE, False),   # sous-titre (complété en Task 5)
-        ("", 14.0, WHITE, False),   # auteur (complété en Task 5)
-        ("", 14.0, ACCENT, False),  # stats (complété en Task 5)
+        ("Retex flash — le widget de date de publication sur StaffBase", 16.0, WHITE, False),
+        ("Fabien Klee · 18 novembre 2026", 14.0, WHITE, False),
+        ("2 jours · 2 phases · 20 commits · 16 tests · 0 ligne de code écrite à la main", 14.0, ACCENT, False),
     ]
     for i, (text, size, color, bold) in enumerate(lines):
         para = tf.paragraphs[0] if i == 0 else tf.add_paragraph()

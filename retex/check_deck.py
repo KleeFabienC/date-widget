@@ -69,6 +69,9 @@ BODY_PT_OVERRIDES: dict[int, float] = {7: 13.0, 11: 13.0}
 # Textes interdits (case-insensitive).
 PLACEHOLDERS = ["TODO", "XXX", "Lorem", "TBD"]
 
+# Phrases que le slide 1 (diapo titre) doit contenir (minuscules).
+TITLE_STATS = ["20 commits", "16 tests", "0 ligne de code écrite à la main"]
+
 
 def slide_text(slide) -> str:
     parts = []
@@ -100,6 +103,12 @@ def main() -> int:
         return 1
 
     prs = Presentation(str(path))
+    # Intégrité : ré-ouverture indépendante du zip OOXML.
+    try:
+        Presentation(str(path))
+    except Exception as e:
+        print(f"ÉCHEC : ré-ouverture impossible (fichier corrompu) : {e}")
+        return 1
     slides = list(prs.slides)
 
     if len(slides) != 11:
@@ -126,6 +135,10 @@ def main() -> int:
         for ph in PLACEHOLDERS:
             if ph.lower() in norm:
                 failures.append(f"slide {i} : texte placeholder « {ph} »")
+        if i == 1:
+            for phrase in TITLE_STATS:
+                if phrase.lower() not in norm:
+                    failures.append(f"slide 1 : stats manquantes « {phrase} »")
 
     if failures:
         for f in failures:
