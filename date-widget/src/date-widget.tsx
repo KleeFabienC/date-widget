@@ -29,7 +29,7 @@ const formatDate = (iso: string, contentLanguage: string): string =>
     .toLocaleDateString(contentLanguage.replace("_", "-"), { day: "numeric", month: "short", year: "numeric" })
     .replace(/[\u202f\u00a0]/g, " ");
 
-export const DateWidget = ({ pageId, webUrl, contentLanguage }: DateWidgetProps): ReactElement => {
+export const DateWidget = ({ pageId, webUrl, contentLanguage }: DateWidgetProps): ReactElement | null => {
   const [publishedDates, setPublishedDates] = useState<PublishedDates | null>(null);
   const [failed, setFailed] = useState<boolean>(false);
 

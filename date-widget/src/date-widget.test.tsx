@@ -66,6 +66,18 @@ describe("DateWidget", () => {
     expect(screen.queryByText(/Publié le/)).not.toBeInTheDocument();
   });
 
+  it("should render nothing when a createdAt is malformed (no « Invalid Date » visible)", async () => {
+    mockFetch(200, {
+      data: [{ version: 1, previousVersion: null, createdAt: "pas-une-date" }],
+      cursor: "NA==",
+    });
+    render(<DateWidget {...PROPS} />);
+    await waitFor(() => expect(global.fetch).toHaveBeenCalled());
+    await new Promise((resolve) => setTimeout(resolve, 0)); // laisser la promesse résoudre + re-render
+    expect(document.body.textContent).toBe("");
+    expect(screen.queryByText(/Publié le|Invalid Date/)).not.toBeInTheDocument();
+  });
+
   it("should render nothing and warn when the API fails", async () => {
     const warn = jest.spyOn(console, "warn").mockImplementation(() => undefined);
     global.fetch = jest.fn().mockRejectedValue(new Error("network")) as unknown as typeof fetch;

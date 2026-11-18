@@ -67,6 +67,27 @@ describe("getPublishedDates", () => {
     expect(dates).toEqual({ current: null, previous: null });
   });
 
+  it("should map a malformed createdAt to null (never « Invalid Date » downstream)", async () => {
+    mockFetch(200, {
+      data: [
+        { version: 2, previousVersion: 1, createdAt: "pas-une-date" },
+        { version: 1, previousVersion: null, createdAt: "2026-11-17T08:00:00Z" },
+      ],
+      cursor: "NA==",
+    });
+    const dates = await getPublishedDates(WEB_URL, PAGE_ID);
+    expect(dates).toEqual({ current: null, previous: "2026-11-17T08:00:00Z" });
+  });
+
+  it("should map a non-string createdAt to null", async () => {
+    mockFetch(200, {
+      data: [{ version: 1, previousVersion: null, createdAt: 1234567890 }],
+      cursor: "NA==",
+    });
+    const dates = await getPublishedDates(WEB_URL, PAGE_ID);
+    expect(dates).toEqual({ current: null, previous: null });
+  });
+
   it("should reject on non-2xx with the HTTP status (401 and 404)", async () => {
     mockFetch(401, {});
     await expect(getPublishedDates(WEB_URL, PAGE_ID)).rejects.toThrow(/401/);

@@ -36,9 +36,20 @@ export interface PublishedDates {
 }
 
 interface VersionEntry {
-  createdAt?: string;
+  createdAt?: unknown;
   isDraft?: boolean;
+  version?: number;
 }
+
+/**
+ * `createdAt` provient d'un JSON non typé d'un endpoint sans contrat :
+ * n'accepter qu'une chaîne parseable en date, sinon null (degradé bénin :
+ * le widget n'affichera jamais « Invalid Date » ni une date erronée).
+ */
+const publishedDateOf = (entry: VersionEntry | undefined): string | null =>
+  typeof entry?.createdAt === "string" && !Number.isNaN(Date.parse(entry.createdAt))
+    ? entry.createdAt
+    : null;
 
 export async function getPublishedDates(webUrl: string, pageId: string): Promise<PublishedDates> {
   const url = `${webUrl.replace(/\/+$/, "")}/api/pages/${pageId}/versions?limit=5`;
@@ -53,7 +64,7 @@ export async function getPublishedDates(webUrl: string, pageId: string): Promise
   const versions: VersionEntry[] = Array.isArray(data?.data) ? data.data : [];
   const published = versions.filter((v) => v && !v.isDraft);
   return {
-    current: published[0]?.createdAt ?? null,
-    previous: published[1]?.createdAt ?? null,
+    current: publishedDateOf(published[0]),
+    previous: publishedDateOf(published[1]),
   };
 }
