@@ -22,7 +22,10 @@ describe("Widget integration", () => {
   });
 
   it("should show the dates of the hosting page", async () => {
-    mockFetch(200, { publishedAt: "2026-11-17T10:00:00Z", updatedAt: "2026-11-17T10:00:00Z" });
+    mockFetch(200, {
+      data: [{ version: 1, previousVersion: null, createdAt: "2026-11-17T10:00:00Z" }],
+      cursor: "NA==",
+    });
     const page = document.createElement("div");
     page.setAttribute("data-installation-id", "6afc78e4000e7511c05ac171");
     const widget = document.createElement("date-widget");
@@ -33,7 +36,10 @@ describe("Widget integration", () => {
   });
 
   it("should show the dates when the widget is rendered inside a shadow root (new UX)", async () => {
-    mockFetch(200, { publishedAt: "2026-11-17T10:00:00Z", updatedAt: "2026-11-17T10:00:00Z" });
+    mockFetch(200, {
+      data: [{ version: 1, previousVersion: null, createdAt: "2026-11-17T10:00:00Z" }],
+      cursor: "NA==",
+    });
     // Topologie réelle de la nouvelle UX : id sur <html>, widget dans une shadow root
     document.documentElement.setAttribute("data-installation-id", "6afc78e4000e7511c05ac171");
     const host = document.createElement("div");
@@ -48,7 +54,10 @@ describe("Widget integration", () => {
   });
 
   it("should strip the platform widget-card decoration around the content", async () => {
-    mockFetch(200, { publishedAt: "2026-11-17T10:00:00Z", updatedAt: "2026-11-17T10:00:00Z" });
+    mockFetch(200, {
+      data: [{ version: 1, previousVersion: null, createdAt: "2026-11-17T10:00:00Z" }],
+      cursor: "NA==",
+    });
     // Topologie de la nouvelle UX : id sur <html>, contenu enveloppé dans .widget-card
     document.documentElement.setAttribute("data-installation-id", "6afc78e4000e7511c05ac171");
     const widget = document.createElement("date-widget");
@@ -67,7 +76,10 @@ describe("Widget integration", () => {
   });
 
   it("should strip the designer-branding shadow from the block wrapper above the shadow root", async () => {
-    mockFetch(200, { publishedAt: "2026-11-17T10:00:00Z", updatedAt: "2026-11-17T10:00:00Z" });
+    mockFetch(200, {
+      data: [{ version: 1, previousVersion: null, createdAt: "2026-11-17T10:00:00Z" }],
+      cursor: "NA==",
+    });
     // Topologie réelle observée dans l'app (dump Studio) : l'ombre « carte » vient du
     // wrapper du bloc en light DOM (au-dessus de <sb-custom-block> et de la shadow
     // root de la plateforme), via les classes designer-branding-*
@@ -92,7 +104,10 @@ describe("Widget integration", () => {
   });
 
   it("should not touch a block wrapper without designer branding", async () => {
-    mockFetch(200, { publishedAt: "2026-11-17T10:00:00Z", updatedAt: "2026-11-17T10:00:00Z" });
+    mockFetch(200, {
+      data: [{ version: 1, previousVersion: null, createdAt: "2026-11-17T10:00:00Z" }],
+      cursor: "NA==",
+    });
     document.documentElement.setAttribute("data-installation-id", "6afc78e4000e7511c05ac171");
     const wrapper = document.createElement("div");
     wrapper.className = "mb-6 overflow-hidden last:mb-0";
@@ -113,10 +128,10 @@ describe("Widget integration", () => {
   });
 
   it("should render nothing outside a page (no data-installation-id)", async () => {
-    const callsBefore = (global.fetch as jest.Mock).mock.calls.length;
+    global.fetch = jest.fn() as unknown as typeof fetch;
     const widget = document.createElement("date-widget");
     document.body.appendChild(widget);
     expect(widget.textContent).toBe("");
-    expect((global.fetch as jest.Mock).mock.calls.length).toBe(callsBefore);
+    expect(global.fetch).not.toHaveBeenCalled();
   });
 });
