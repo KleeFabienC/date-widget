@@ -44,13 +44,19 @@ KEY_PHRASES: dict[int, list[str]] = {
         "revue finale", "licence", "push"],
     5: ["avant le code", "red", "green", "data-installation-id", "api/pages",
         "publié le", "modifié le", "16 tests"],
+    6: ["localhost", "content-type", "github pages",
+        "1 min", "curl"],
+    7: ["shadow root", "closest", "tracking prevention", "50 ms",
+        "console.table", "diagnostic", "rebuild", "ignoré"],
 }
 
 # Chaînes qui doivent apparaître AVEC leur casse exacte (URLs).
-EXACT: dict[int, list[str]] = {}
+EXACT: dict[int, list[str]] = {
+    6: ["https://KleeFabienC.github.io/date-widget/staffbase.date-widget.js"],
+}
 
 # Slides denses : taille de police imposée du corps (points).
-BODY_PT_OVERRIDES: dict[int, float] = {}
+BODY_PT_OVERRIDES: dict[int, float] = {7: 13.0}
 
 # Textes interdits (case-insensitive).
 PLACEHOLDERS = ["TODO", "XXX", "Lorem", "TBD"]
