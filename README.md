@@ -1,13 +1,14 @@
 # date-widget — StaffBase
 
-Widget Staffbase qui affiche **la date de publication de la Page qui l'héberge**, et sa date de modification si celle-ci est postérieure.
+Widget Staffbase qui affiche **la date de publication de la Page qui l'héberge**, et sa date de modification si le **jour affiché** diffère.
 
 ## Fonctionnement
 
-- L'identifiant de la page courante est lu dans le DOM sur l'attribut `data-installation-id` (posé sur le tag HTML de la page) via `closest()` depuis l'élément `<date-widget>`.
-- Les dates proviennent de l'API Pages Staffbase : `GET {webUrl}/api/pages/{pageId}`, avec l'authentification par cookies de session de l'utilisateur (`credentials: "include"`). `webUrl` est fourni par le SDK (`widgetApi.getBranchInformation()`).
-- Affichage : « Publié le 17 nov. 2026 », éventuellement « · Modifié le … » si la modification est strictement postérieure à la publication. Page non publiée → « Modifié le … » seul.
-- Hors d'une Page (News, aperçu éditeur) ou en cas d'erreur d'API, le widget ne rend rien (un `console.warn` est émis).
+- L'identifiant de la page courante est lu dans le DOM sur l'attribut `data-installation-id` (posé sur la balise `<html>` de la page) par `resolveInstallationId()`, qui remonte depuis l'élément `<date-widget>` **en traversant les shadow roots** — le widget est rendu dans la shadow root de la plateforme, et `closest()` seul ne la traverse pas.
+- Les dates proviennent de l'API Pages Staffbase : `GET {webUrl}/api/pages/{pageId}`, avec l'authentification par cookies de session de l'utilisateur (`credentials: "include"`). `webUrl` est fourni par le SDK (`widgetApi.getBranchInformation()`), normalisé (barre finale absorbée).
+- Affichage : « Publié le 17 nov. 2026 », éventuellement « · Modifié le … » si le **jour affiché** de la modification diffère de celui de la publication (la publication met à jour la page : `updatedAt` ≈ `publishedAt`, une ligne au même jour n'apporte rien). Page non publiée → « Modifié le … » seul.
+- Zéro habillage : le widget neutralise par override inline la décoration « carte » de la plateforme (`div.widget-card`, et le wrapper du bloc light DOM `designer-branding-shadow` / `designer-branding-border-radius` au-dessus de la shadow root).
+- Hors d'une Page (News, aperçu éditeur), le widget ne rend rien, **silencieusement** (aucun appel API). En cas d'erreur d'API, il ne rend rien non plus et émet un `console.warn`.
 - Le widget n'a **aucune configuration** (schéma vide).
 
 ## Layout du repo
@@ -39,11 +40,14 @@ cp date-widget/dist/staffbase.date-widget.js.LICENSE.txt .
 
 Le fichier `.LICENSE.txt` est référencé par la 1ʳᵉ ligne du bundle : il doit toujours voyager avec lui.
 
-## Installation en développement
+## Installation
 
-```bash
-cd date-widget
-npm start
+Staffbase est un SaaS : le bundle doit être servi **en HTTPS depuis une URL publique** — un `localhost` est refusé par Studio. L'URL publiée (GitHub Pages sur `main`, redéploié ~1 min après push) :
+
+```
+https://KleeFabienC.github.io/date-widget/staffbase.date-widget.js
 ```
 
-Puis installer l'URL `http://localhost:9000/staffbase.date-widget.js` dans Staffbase Studio (doc : https://developers.staffbase.com/frameworks/customwidget-development).
+Installez cette URL dans Staffbase Studio (doc : https://developers.staffbase.com/frameworks/customwidget-development). L'URL ne change pas après un rebuild+push : si Studio ou le navigateur sert le bundle en cache, re-enregistrez le widget ou faites un rechargement dur.
+
+`npm start` (serveur local de prévisualisation, port 9000) sert uniquement au développement local, pas à l'installation dans Studio.
