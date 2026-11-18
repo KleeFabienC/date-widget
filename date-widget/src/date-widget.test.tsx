@@ -25,6 +25,14 @@ describe("DateWidget", () => {
     expect(screen.queryByText(/Modifié le/)).not.toBeInTheDocument();
   });
 
+  it("should not show the modified date when it falls on the same displayed day (publish updates the page)", async () => {
+    // Cas réel observé dans l'app : updatedAt 50 ms après publishedAt, même jour
+    mockFetch(200, { publishedAt: "2026-11-18T06:53:34.699Z", updatedAt: "2026-11-18T06:53:34.749Z" });
+    render(<DateWidget {...PROPS} />);
+    expect(await screen.findByText("Publié le 18 nov. 2026")).toBeInTheDocument();
+    expect(screen.queryByText(/Modifié le/)).not.toBeInTheDocument();
+  });
+
   it("should append the modified date only when it is strictly later", async () => {
     mockFetch(200, { publishedAt: "2026-11-17T10:00:00Z", updatedAt: "2026-12-03T08:30:00Z" });
     render(<DateWidget {...PROPS} />);

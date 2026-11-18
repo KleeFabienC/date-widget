@@ -59,14 +59,18 @@ export const DateWidget = ({ pageId, webUrl, contentLanguage }: DateWidgetProps)
     return null;
   }
 
+  // La publication met à jour la page (updatedAt ≈ publishedAt, même jour) :
+  // la ligne « Modifié le » n'est informative que si le JOUR afféré diffère.
   let text: string | null = null;
-  if (dates.publishedAt) {
-    text = `Publié le ${formatDate(dates.publishedAt, contentLanguage)}`;
-    if (dates.updatedAt && new Date(dates.updatedAt) > new Date(dates.publishedAt)) {
-      text += ` · Modifié le ${formatDate(dates.updatedAt, contentLanguage)}`;
+  const publishedDay = dates.publishedAt ? formatDate(dates.publishedAt, contentLanguage) : null;
+  const modifiedDay = dates.updatedAt ? formatDate(dates.updatedAt, contentLanguage) : null;
+  if (publishedDay) {
+    text = `Publié le ${publishedDay}`;
+    if (modifiedDay && modifiedDay !== publishedDay) {
+      text += ` · Modifié le ${modifiedDay}`;
     }
-  } else if (dates.updatedAt) {
-    text = `Modifié le ${formatDate(dates.updatedAt, contentLanguage)}`;
+  } else if (modifiedDay) {
+    text = `Modifié le ${modifiedDay}`;
   }
 
   if (!text) {

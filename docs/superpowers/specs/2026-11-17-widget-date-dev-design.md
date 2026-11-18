@@ -17,7 +17,7 @@ Le widget `<date-widget>` affiche, dans l'app Staffbase, la **date de publicatio
 ## Affichage
 
 - **« Publié le 17 nov. 2026 »** — format court via `contentLanguage` (`toLocaleDateString` en locale dérivée de `contentLanguage`, ex. `fr_FR` → `fr-FR`, `day: 'numeric', month: 'short', year: 'numeric'`).
-- **« · Modifié le 3 déc. 2026 »** — uniquement si `updatedAt` > `publishedAt`.
+- **« · Modifié le 3 déc. 2026 »** — uniquement si le **jour affiché** de la modification diffère de celui de la publication. La publication met à jour la page (`updatedAt` ≈ `publishedAt`, à la seconde près — observé 50-114 ms dans l'app) : une « modification » au même jour n'apporte aucune information et n'est pas affichée.
 - `publishedAt` absent (page jamais publiée) → afficher « Modifié le … » seul si `updatedAt` existe.
 - Absence de `data-installation-id` (widget hors d'une Page : News, aperçu dans l'éditeur) → le widget **ne rend rien de visible** + `console.warn`.
 - Erreur d'API (401/403/5xx/réseau) → idem : rien de visible + `console.warn`.
