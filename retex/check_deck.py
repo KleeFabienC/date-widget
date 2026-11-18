@@ -48,6 +48,14 @@ KEY_PHRASES: dict[int, list[str]] = {
         "1 min", "curl"],
     7: ["shadow root", "closest", "tracking prevention", "50 ms",
         "console.table", "diagnostic", "rebuild", "ignoré"],
+    8: ["reconnaissance", "questions", "tdd", "revue",
+        "ledger", "traçabilité"],
+    9: ["prod", "data-menu-id", "data-installation-id",
+        "test d'acceptance", "dans la boucle"],
+    10: ["non-dev", "workflow", "humain", "traçable",
+         "réutilisable"],
+    11: ["source de vérité", "create-widget", "github pages",
+         "questions"],
 }
 
 # Chaînes qui doivent apparaître AVEC leur casse exacte (URLs).
@@ -56,7 +64,7 @@ EXACT: dict[int, list[str]] = {
 }
 
 # Slides denses : taille de police imposée du corps (points).
-BODY_PT_OVERRIDES: dict[int, float] = {7: 13.0}
+BODY_PT_OVERRIDES: dict[int, float] = {7: 13.0, 11: 13.0}
 
 # Textes interdits (case-insensitive).
 PLACEHOLDERS = ["TODO", "XXX", "Lorem", "TBD"]

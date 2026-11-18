@@ -108,10 +108,37 @@ SLIDES: list[tuple[str, list[tuple[int, str, object]]]] = [
         (1, "Moi : tester dans l'app réelle, copier les erreurs, amener les données API réelles (console.table)", None),
         (1, "IA : diagnostic → correctif avec test de régression → rebuild → push → vérification du déploiement", None),
     ]),
-    ("content", []),
-    ("content", []),
-    ("content", []),
-    ("content", []),
+    ("content", [
+        (0, "Reconnaissance autonome : npm officiel, code de la collègue, docs, mon environnement — avant de demander quoi que ce soit", GREEN),
+        (0, "Des questions avant d'agir : la question clé (but, nom), des gates (spec, plan, appel API manuel validé avant le code)", GREEN),
+        (0, "TDD : test de régression avant chaque correctif, écrit avec MES données réelles", GREEN),
+        (0, "Auto-revue indépendante : des défauts trouvés que je n'avais pas vus (licence, .gitignore)", GREEN),
+        (0, "Décisions documentées et réversibles (ledger) + un commit par étape → traçabilité complète", GREEN),
+    ]),
+    ("content", [
+        (0, "Elle ne connaît pas l'app en prod : shadow DOM, comportement du SaaS, navigateur → invisible pour elle", AMBER),
+        (0, "Elle s'est trompée une fois : data-menu-id → en réalité data-installation-id (corrigée par MES retours depuis le DOM réel)", AMBER),
+        (0, "Elle ne peut pas tester dans l'app réelle : JE SUIS le test d'acceptance", AMBER),
+        (0, "Conséquence : l'humain reste dans la boucle — mes retours et mes données sont le carburant du processus", AMBER),
+    ]),
+    ("content", [
+        (0, "Un non-dev a livré un widget réel, testé et déployé", None),
+        (0, "Ce qui a fait la différence : le workflow structuré (spec / plan / TDD / validations), pas un « prompt magique »", None),
+        (0, "L'humain reste indispensable : l'app réelle, les données réelles, l'acceptance", None),
+        (0, "Tout est traçable : spec, plan, tests, git — le projet a une mémoire lisible", None),
+        (0, "Le résultat est réutilisable : le repo sert de référence pour le prochain widget", None),
+    ]),
+    ("content", [
+        (0, "Vigilance :", AMBER),
+        (1, "ne pas croire sur parole : valider TOUJOURS dans l'app réelle", SOFT),
+        (1, "la spec est la source de vérité : la garder à jour", SOFT),
+        (1, "documenter les décisions, même mineures (ledger)", SOFT),
+        (0, "Reproductibilité :", None),
+        (1, "socle officiel @staffbase/create-widget", SOFT),
+        (1, "OpenCode + workflow structuré (superpowers)", SOFT),
+        (1, "pattern : source + bundle compilé à la racine du repo, GitHub Pages", SOFT),
+        (0, "Questions ?", None),
+    ]),
 ]
 
 
