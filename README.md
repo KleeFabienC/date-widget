@@ -13,10 +13,10 @@ Widget Staffbase qui affiche les **dates de publication** de la Page qui l'hébe
   | ≥ 2 versions publiées, jours affichés différents | « Publié le {N-1} · Mis à jour le {N} » |
   | ≥ 2 versions publiées, même jour affiché | « Publié le {N} » seul |
   | 1 seule version publiée | « Publié le {N} » |
-  | Jamais publiée (brouillon seul) | rien, silencieusement |
+  | Jamais publiée (brouillon seul ou liste vide) | rien, silencieusement |
   | Erreur API (401/403/404/5xx/réseau) | rien + `console.warn` |
 
-- **Risque assumé** : l'endpoint est interne, sans contrat de stabilité — si la plateforme le modifie ou le retire, le widget devient invisible (jamais d'erreur affichée) ; rollback = la version phase 2 (API publique `GetPage`).
+- **Risque assumé** : l'endpoint est interne, sans contrat de stabilité — si la plateforme le modifie ou le retire, le widget devient invisible (jamais d'erreur ni de date erronée affichée : les dates non parseables sont écartées) ; l'exclusion du brouillon repose sur un double marqueur (`isDraft` + version virtuelle `99999`) ; rollback = la version phase 2 (API publique `GetPage`).
 - Zéro habillage : le widget neutralise par override inline la décoration « carte » de la plateforme (`div.widget-card`, et le wrapper du bloc light DOM `designer-branding-shadow` / `designer-branding-border-radius` au-dessus de la shadow root).
 - Hors d'une Page (News, aperçu éditeur), le widget ne rend rien, **silencieusement** (aucun appel API). En cas d'erreur d'API, il ne rend rien non plus et émet un `console.warn`.
 - Le widget n'a **aucune configuration** (schéma vide).

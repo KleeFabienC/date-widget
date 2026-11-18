@@ -62,7 +62,10 @@ export async function getPublishedDates(webUrl: string, pageId: string): Promise
   }
   const data = await res.json();
   const versions: VersionEntry[] = Array.isArray(data?.data) ? data.data : [];
-  const published = versions.filter((v) => v && !v.isDraft);
+  // Double garde-fou anti-brouillon : le marqueur `isDraft` ET l'identifiant
+  // de la version virtuelle `99999` — si la plateforme en retire un,
+  // l'autre continue d'exclure le brouillon (Review Focus n°1).
+  const published = versions.filter((v) => v && !v.isDraft && v.version !== 99999);
   return {
     current: publishedDateOf(published[0]),
     previous: publishedDateOf(published[1]),

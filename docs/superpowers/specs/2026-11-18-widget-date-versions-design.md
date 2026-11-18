@@ -35,7 +35,7 @@ Endpoint **interne** de l'app (non documenté dans l'API publique), identifié p
 
 - Format des dates inchangé : `formatDate` (locale dérivée de `contentLanguage`, nbsp CLDR → espace).
 - L'étiquette « Modifié le » de la phase 2 est **remplacée** par « **Mis à jour le** ».
-- Le brouillon en tête de chaîne (éditions non publiées) ne décale pas N/N-1 : on ignore purement et simplement `isDraft`.
+- Le brouillon en tête de chaîne (éditions non publiées) ne décale pas N/N-1 : on exclut `isDraft: true` **et** la version `99999` (double marqueur, voir Risque connu).
 
 ## Approche
 
@@ -59,7 +59,7 @@ Alternative écartée : « GetPage + versions » — redondant (`GetPage.publish
 
 ## Risque connu (accepté)
 
-L'endpoint `versions` **n'est pas dans l'API publique documentée** : pas de garantie de stabilité. Dégradé bénin : si la plateforme le modifie ou le retire, le widget devient invisible (jamais d'erreur affichée) ; rollback = la version phase 2 (`GetPage`). L'utilisatrice est insider Staffbase et peut suivre le sujet côté plateforme.
+L'endpoint `versions` **n'est pas dans l'API publique documentée** : pas de garantie de stabilité. Dégradé bénin : si la plateforme le modifie ou le retire, le widget devient invisible — jamais d'erreur affichée, et une `createdAt` absente, malformée ou non-chaîne est écartée (jamais de « Invalid Date » ni de date erronée). L'exclusion du brouillon repose sur un **double marqueur** (`isDraft: true` + version virtuelle `99999`) : si la plateforme en retire un, l'autre continue de protéger ; si elle modifie les deux, des dates de brouillon pourraient s'afficher. Rollback = la version phase 2 (`GetPage`). L'utilisatrice est insider Staffbase et peut suivre le sujet côté plateforme.
 
 ## Acceptation
 

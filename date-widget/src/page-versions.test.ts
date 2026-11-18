@@ -61,6 +61,18 @@ describe("getPublishedDates", () => {
     expect(dates).toEqual({ current: null, previous: null });
   });
 
+  it("should ignore the virtual draft version 99999 even without isDraft", async () => {
+    mockFetch(200, {
+      data: [
+        { version: 99999, previousVersion: 1, createdAt: "2026-11-18T09:27:40Z" },
+        { version: 1, previousVersion: null, createdAt: "2026-11-17T08:00:00Z" },
+      ],
+      cursor: "NA==",
+    });
+    const dates = await getPublishedDates(WEB_URL, PAGE_ID);
+    expect(dates).toEqual({ current: "2026-11-17T08:00:00Z", previous: null });
+  });
+
   it("should map a missing createdAt to null", async () => {
     mockFetch(200, { data: [{ version: 1, previousVersion: null }], cursor: null });
     const dates = await getPublishedDates(WEB_URL, PAGE_ID);
