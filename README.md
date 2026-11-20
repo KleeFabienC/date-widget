@@ -1,22 +1,22 @@
 # date-widget — StaffBase
 
-Widget Staffbase qui affiche les **dates de publication** de la Page qui l'héberge : la version publiée précédente (« Publié le ») et la version courante (« Mis à jour le »).
+Widget Staffbase qui affiche les **dates de la Page** qui l'héberge : sa date de création (« Publié le », `createdAt`) et sa date de publication (« Mis à jour le », `publishedAt`).
 
 ## Fonctionnement
 
 - L'identifiant de la page courante est lu dans le DOM sur l'attribut `data-installation-id` (posé sur la balise `<html>` de la page) par `resolveInstallationId()`, qui remonte depuis l'élément `<date-widget>` **en traversant les shadow roots** — le widget est rendu dans la shadow root de la plateforme, et `closest()` seul ne la traverse pas.
-- Les dates proviennent de l'**endpoint interne** de l'app `GET {webUrl}/api/pages/{pageId}/versions?limit=5` (historique de versions, **hors de l'API Pages publique documentée**), avec l'authentification par cookies de session (`credentials: "include"`). `webUrl` est fourni par le SDK (`widgetApi.getBranchInformation()`), normalisé (barre finale absorbée). Le brouillon est la version virtuelle `99999` (`isDraft: true`), ignorée ; **N** = 1ʳᵉ version non brouillon, **N-1** = 2ᵉ, et la date de publication d'une version est son `createdAt`.
-- Affichage (l'étiquette « Modifié le » de la phase 2 est remplacée par « **Mis à jour le** ») :
+- Les dates sont lues **directement dans la réponse de l'API Pages publique (beta)** : `GET {webUrl}/api/pages/{pageId}`. L'objet plat de la Page contient `createdAt` (ISO) et `publishedAt` (ISO) ; `publishedAt` absent = page jamais publiée. `updatedAt` n'est pas utilisé (il inclut les édits de brouillon). L'authentification repose sur les cookies de session (`credentials: "include"`, même origine) ; `webUrl` est fourni par le SDK (`widgetApi.getBranchInformation()`), normalisé (barre finale absorbée).
+- Affichage :
 
   | Cas | Affichage |
   |---|---|
-  | ≥ 2 versions publiées, jours affichés différents | « Publié le {N-1} · Mis à jour le {N} » |
-  | ≥ 2 versions publiées, même jour affiché | « Publié le {N} » seul |
-  | 1 seule version publiée | « Publié le {N} » |
-  | Jamais publiée (brouillon seul ou liste vide) | rien, silencieusement |
+  | `createdAt` + `publishedAt` présents, jours affichés différents | « Publié le {createdAt} · Mis à jour le {publishedAt} » |
+  | présents, même jour affiché | « Publié le {jour} » seul |
+  | `publishedAt` présent, `createdAt` absent/malformé | « Mis à jour le {publishedAt} » seul |
+  | `publishedAt` absent (page jamais publiée) | rien, silencieusement |
   | Erreur API (401/403/404/5xx/réseau) | rien + `console.warn` |
 
-- **Risque assumé** : l'endpoint est interne, sans contrat de stabilité — si la plateforme le modifie ou le retire, le widget devient invisible (jamais d'erreur ni de date erronée affichée : les dates non parseables sont écartées) ; l'exclusion du brouillon repose sur un double marqueur (`isDraft` + version virtuelle `99999`) ; rollback = la version phase 2 (API publique `GetPage`).
+- **Risque assumé** : l'API Pages est en **beta** (documentée, mais sans garantie de stabilité) — si la plateforme la modifie ou la retire, le widget devient invisible, **jamais d'erreur ni de date erronée affichée** (les dates non parseables sont écartées). L'authentification repose sur le cookie de session du lecteur (comme phases 2-3). Rollback = la version phase 3 (endpoint interne `/versions`, toujours dans l'historique git).
 - Zéro habillage : le widget neutralise par override inline la décoration « carte » de la plateforme (`div.widget-card`, et le wrapper du bloc light DOM `designer-branding-shadow` / `designer-branding-border-radius` au-dessus de la shadow root).
 - Hors d'une Page (News, aperçu éditeur), le widget ne rend rien, **silencieusement** (aucun appel API). En cas d'erreur d'API, il ne rend rien non plus et émet un `console.warn`.
 - Le widget n'a **aucune configuration** (schéma vide).
