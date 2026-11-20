@@ -13,7 +13,7 @@
 
 import React, { ReactElement, useEffect, useState } from "react";
 
-import { getPublishedDates, PublishedDates } from "./page-versions";
+import { getPageDates, PageDates } from "./page-dates";
 
 /**
  * React Component
@@ -30,7 +30,7 @@ const formatDate = (iso: string, contentLanguage: string): string =>
     .replace(/[\u202f\u00a0]/g, " ");
 
 export const DateWidget = ({ pageId, webUrl, contentLanguage }: DateWidgetProps): ReactElement | null => {
-  const [publishedDates, setPublishedDates] = useState<PublishedDates | null>(null);
+  const [pageDates, setPageDates] = useState<PageDates | null>(null);
   const [failed, setFailed] = useState<boolean>(false);
 
   useEffect(() => {
@@ -39,12 +39,12 @@ export const DateWidget = ({ pageId, webUrl, contentLanguage }: DateWidgetProps)
     }
     // Si les props changent (page réutilisée sans remontage), repartir d'un état propre.
     setFailed(false);
-    setPublishedDates(null);
+    setPageDates(null);
     let cancelled = false;
-    getPublishedDates(webUrl, pageId)
+    getPageDates(webUrl, pageId)
       .then((result) => {
         if (!cancelled) {
-          setPublishedDates(result);
+          setPageDates(result);
         }
       })
       .catch((err: Error) => {
@@ -58,20 +58,20 @@ export const DateWidget = ({ pageId, webUrl, contentLanguage }: DateWidgetProps)
     };
   }, [pageId, webUrl]);
 
-  if (failed || !publishedDates) {
+  if (failed || !pageDates) {
     return null;
   }
 
-  const currentDay = publishedDates.current ? formatDate(publishedDates.current, contentLanguage) : null;
-  if (!currentDay) {
-    return null;
+  const createdDay = pageDates.createdAt ? formatDate(pageDates.createdAt, contentLanguage) : null;
+  const publishedDay = pageDates.publishedAt ? formatDate(pageDates.publishedAt, contentLanguage) : null;
+  if (!publishedDay) {
+    return null; // page jamais publiée (ou publishedAt non parseable)
   }
-
-  // « Publié le » = N-1, « Mis à jour le » = N (spec phase 3).
-  // Même jour affiché → une seule date (une ligne au même jour n'apporte rien).
-  const previousDay = publishedDates.previous ? formatDate(publishedDates.previous, contentLanguage) : null;
-  if (previousDay && previousDay !== currentDay) {
-    return <div>Publié le {previousDay} · Mis à jour le {currentDay}</div>;
+  if (createdDay && createdDay !== publishedDay) {
+    return <div>Publié le {createdDay} · Mis à jour le {publishedDay}</div>;
   }
-  return <div>Publié le {currentDay}</div>;
+  if (createdDay) {
+    return <div>Publié le {publishedDay}</div>; // même jour affiché → une seule date
+  }
+  return <div>Mis à jour le {publishedDay}</div>; // createdAt absent/malformé
 };

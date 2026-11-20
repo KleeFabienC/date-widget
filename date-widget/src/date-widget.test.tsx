@@ -18,47 +18,29 @@ function mockFetch(status: number, body: unknown): void {
 afterEach(() => jest.restoreAllMocks());
 
 describe("DateWidget", () => {
-  it("should show the previous publication as « Publié le » and the current one as « Mis à jour le » when the days differ", async () => {
-    mockFetch(200, {
-      data: [
-        { version: 99999, previousVersion: 8, createdAt: "2026-11-18T09:27:40Z", isDraft: true },
-        { version: 8, previousVersion: 7, createdAt: "2026-11-18T09:21:17Z" },
-        { version: 7, previousVersion: 6, createdAt: "2026-11-17T09:14:21Z" },
-      ],
-      cursor: "NA==",
-    });
+  it("should show « Publié le » (createdAt) and « Mis à jour le » (publishedAt) when the displayed days differ", async () => {
+    mockFetch(200, { id: "p1", createdAt: "2021-06-23T08:07:13.178Z", updatedAt: "2021-09-03T11:37:01.760Z", publishedAt: "2026-11-18T09:21:17Z" });
     render(<DateWidget {...PROPS} />);
-    expect(await screen.findByText("Publié le 17 nov. 2026 · Mis à jour le 18 nov. 2026")).toBeInTheDocument();
+    expect(await screen.findByText("Publié le 23 juin 2021 · Mis à jour le 18 nov. 2026")).toBeInTheDocument();
+    expect(document.body.textContent).not.toMatch(/Modifié le/);
   });
 
-  it("should show a single date when both publications fall on the same displayed day", async () => {
-    mockFetch(200, {
-      data: [
-        { version: 8, previousVersion: 7, createdAt: "2026-11-18T09:21:17Z" },
-        { version: 7, previousVersion: 6, createdAt: "2026-11-18T09:14:21Z" },
-      ],
-      cursor: "NA==",
-    });
+  it("should show a single « Publié le » when both dates fall on the same displayed day", async () => {
+    mockFetch(200, { id: "p1", createdAt: "2026-11-18T06:00:00Z", publishedAt: "2026-11-18T09:21:17Z" });
     render(<DateWidget {...PROPS} />);
     expect(await screen.findByText("Publié le 18 nov. 2026")).toBeInTheDocument();
     expect(screen.queryByText(/Mis à jour le/)).not.toBeInTheDocument();
   });
 
-  it("should show only « Publié le » when there is a single published version", async () => {
-    mockFetch(200, {
-      data: [{ version: 1, previousVersion: null, createdAt: "2026-11-17T08:00:00Z" }],
-      cursor: "NA==",
-    });
+  it("should show only « Mis à jour le » when createdAt is absent", async () => {
+    mockFetch(200, { id: "p1", publishedAt: "2026-11-18T09:21:17Z" });
     render(<DateWidget {...PROPS} />);
-    expect(await screen.findByText("Publié le 17 nov. 2026")).toBeInTheDocument();
-    expect(screen.queryByText(/Mis à jour le/)).not.toBeInTheDocument();
+    expect(await screen.findByText("Mis à jour le 18 nov. 2026")).toBeInTheDocument();
+    expect(screen.queryByText(/Publié le/)).not.toBeInTheDocument();
   });
 
-  it("should render nothing when the page is unpublished (draft only)", async () => {
-    mockFetch(200, {
-      data: [{ version: 99999, previousVersion: null, createdAt: "2026-11-18T09:27:40Z", isDraft: true }],
-      cursor: "NA==",
-    });
+  it("should render nothing when the page is unpublished (publishedAt absent)", async () => {
+    mockFetch(200, { id: "p1", createdAt: "2021-06-23T08:07:13.178Z" });
     render(<DateWidget {...PROPS} />);
     await waitFor(() => expect(global.fetch).toHaveBeenCalled());
     await new Promise((resolve) => setTimeout(resolve, 0)); // laisser la promesse résoudre + re-render
@@ -66,11 +48,8 @@ describe("DateWidget", () => {
     expect(screen.queryByText(/Publié le/)).not.toBeInTheDocument();
   });
 
-  it("should render nothing when a createdAt is malformed (no « Invalid Date » visible)", async () => {
-    mockFetch(200, {
-      data: [{ version: 1, previousVersion: null, createdAt: "pas-une-date" }],
-      cursor: "NA==",
-    });
+  it("should render nothing when publishedAt is malformed (no « Invalid Date » visible)", async () => {
+    mockFetch(200, { id: "p1", createdAt: "2021-06-23T08:07:13.178Z", publishedAt: "pas-une-date" });
     render(<DateWidget {...PROPS} />);
     await waitFor(() => expect(global.fetch).toHaveBeenCalled());
     await new Promise((resolve) => setTimeout(resolve, 0)); // laisser la promesse résoudre + re-render
@@ -84,6 +63,15 @@ describe("DateWidget", () => {
     render(<DateWidget {...PROPS} />);
     await waitFor(() => expect(warn).toHaveBeenCalled());
     expect(document.body.textContent).toBe("");
+  });
+
+  it("should refetch and show the new page's dates when pageId changes (no stale state)", async () => {
+    mockFetch(200, { id: "p1", createdAt: "2021-06-23T08:07:13.178Z", publishedAt: "2026-11-18T09:21:17Z" });
+    const { rerender } = render(<DateWidget {...PROPS} />);
+    expect(await screen.findByText("Publié le 23 juin 2021 · Mis à jour le 18 nov. 2026")).toBeInTheDocument();
+    mockFetch(200, { id: "p2", createdAt: "2022-01-05T08:00:00Z", publishedAt: "2026-11-20T09:00:00Z" });
+    rerender(<DateWidget pageId="p2" webUrl={PROPS.webUrl} contentLanguage={PROPS.contentLanguage} />);
+    expect(await screen.findByText("Publié le 5 janv. 2022 · Mis à jour le 20 nov. 2026")).toBeInTheDocument();
   });
 
   it("should render nothing and not fetch without pageId", async () => {
